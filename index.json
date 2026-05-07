@@ -11,8 +11,8 @@
     "languages": ["JP", "US"],
     "url": "aHR0cHM6Ly9hcGkubnpiZ2Vlay5pbmZv",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nzbgeek.png",
-    "update": "gh:sinnafuls/hayase-ext",
-    "code": "gh:sinnafuls/hayase-ext/index",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.js",
     "options": {
       "apikey": {
         "type": "string",
@@ -42,7 +42,7 @@
     "media": "sub",
     "languages": ["US"],
     "icon": "https://animetosho.org/inc/favicon.ico",
-    "update": "gh:sinnafuls/hayase-ext",
-    "code": "gh:sinnafuls/hayase-ext/animetosho-nzb"
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/animetosho-nzb.js"
   }
 ]
