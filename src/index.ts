@@ -143,11 +143,21 @@ const extension = {
   async test (options: ExtensionOptions = {}): Promise<boolean> {
     const apikey = requireKey(options)
     const url = `${baseOf(options)}/api?t=caps&apikey=${encodeURIComponent(apikey)}&o=json`
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15_000)
     let res: Response
     try {
-      res = await fetch(url, { headers: { Accept: 'application/json' } })
+      res = await fetch(url, {
+        headers: { Accept: 'application/json' },
+        signal: controller.signal
+      })
     } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        throw new Error('NZBGeek did not respond within 15 seconds. Check that the API base URL is reachable.')
+      }
       throw new Error(`Could not reach NZBGeek: ${(err as Error).message}`)
+    } finally {
+      clearTimeout(timer)
     }
     const text = await res.text()
     if (!res.ok) throw new Error(`NZBGeek not reachable (HTTP ${res.status})`)

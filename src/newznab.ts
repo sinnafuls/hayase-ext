@@ -65,11 +65,21 @@ export async function newznabSearch ({ fetch, baseUrl, apikey, params }: SearchO
     url.searchParams.set(k, String(v))
   }
 
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 15_000)
   let res: Response
   try {
-    res = await fetch(url.toString(), { headers: { Accept: 'application/json' } })
+    res = await fetch(url.toString(), {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal
+    })
   } catch (err) {
+    if ((err as Error).name === 'AbortError') {
+      throw new Error('NZBGeek request timed out after 15s. The indexer may be slow or unreachable.')
+    }
     throw new Error(`Could not reach NZBGeek: ${(err as Error).message}`)
+  } finally {
+    clearTimeout(timer)
   }
 
   const text = await res.text()
