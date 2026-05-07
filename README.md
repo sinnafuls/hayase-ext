@@ -1,18 +1,14 @@
 # hayase-nzb-extensions
 
-A self-hosted Hayase repository that ships two NZB extensions from one manifest:
-
-- **NZBGeek** — built from TypeScript via esbuild, searches NZBGeek via the Newznab API
-- **AnimeTosho** — verbatim copy of the upstream public bundle, infoHash-based lookup
+A self-hosted Hayase repository that ships an NZBGeek NZB extension built from TypeScript and bundled via esbuild — searches NZBGeek through the Newznab API.
 
 ## Layout
 
 ```
 .
-├── index.json                    Hayase manifest (manifestVersion 2, two entries)
+├── index.json                    Hayase manifest (manifestVersion 2)
 ├── index.js                      Built NZBGeek bundle (auto-built by CI)
-├── animetosho-nzb.js             AnimeTosho bundle (hand-written ESM, no build)
-├── src/                          NZBGeek TS sources
+├── src/                          TS sources
 │   ├── index.ts                  test() / single() / batch() / movie()
 │   ├── newznab.ts                Newznab JSON client
 │   └── types.ts                  AnimeQuery / NZBQuery / option types
@@ -46,12 +42,10 @@ The bot commit doesn't re-trigger the workflow because `index.js` isn't in the `
 
 If your default branch is `master` (not `main`), edit `.github/workflows/build.yml` and update the `branches:` line.
 
-`animetosho-nzb.js` is committed as-is — there's nothing to build for that one. To pull a newer upstream copy: `curl -o animetosho-nzb.js https://exten.pages.dev/animetosho-nzb.js` and bump its `version` in `index.json`.
-
 ## Configure
 
-1. Push this repo to GitHub. The repo must be **public** for `gh:` resolution to work — Hayase fetches via `raw.githubusercontent.com` with no auth. If you need it strictly private, host `index.json`/`index.js`/`animetosho-nzb.js` yourself (Cloudflare Pages, NAS, etc.) and replace `gh:` with the direct URLs.
-2. Bump each entry's `version` in `index.json` whenever you want Hayase to apply an update — Hayase only fetches when the version increases.
+1. Push this repo to GitHub. The repo must be **public** for Hayase to fetch via `raw.githubusercontent.com`. For a strictly private setup, host `index.json` and `index.js` yourself (Cloudflare Pages, NAS, etc.) and use those direct URLs.
+2. Bump `version` in `index.json` whenever you want Hayase to apply an update — Hayase only fetches when the version increases.
 
 ## Install in Hayase
 

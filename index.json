@@ -3,12 +3,12 @@
     "manifestVersion": 2,
     "name": "NZBGeek",
     "id": "nzbgeek",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Search NZBGeek for anime episodes, batches, and movies via the Newznab API.",
     "type": "nzb",
-    "accuracy": "medium",
+    "accuracy": "high",
     "media": "sub",
-    "languages": ["JP", "US"],
+    "languages": ["US"],
     "url": "aHR0cHM6Ly9hcGkubnpiZ2Vlay5pbmZv",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nzbgeek.png",
     "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
@@ -30,19 +30,5 @@
         "default": "5070"
       }
     }
-  },
-  {
-    "manifestVersion": 2,
-    "name": "AnimeTosho (self-hosted)",
-    "id": "animetosho-nzb-self",
-    "version": "0.0.9",
-    "type": "nzb",
-    "accuracy": "high",
-    "ratio": 0,
-    "media": "sub",
-    "languages": ["US"],
-    "icon": "https://animetosho.org/inc/favicon.ico",
-    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
-    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/animetosho-nzb.js"
   }
 ]
