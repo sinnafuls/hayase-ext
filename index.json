@@ -1,0 +1,48 @@
+[
+  {
+    "manifestVersion": 2,
+    "name": "NZBGeek",
+    "id": "nzbgeek",
+    "version": "0.1.0",
+    "description": "Search NZBGeek for anime episodes, batches, and movies via the Newznab API.",
+    "type": "nzb",
+    "accuracy": "medium",
+    "media": "sub",
+    "languages": ["JP", "US"],
+    "url": "aHR0cHM6Ly9hcGkubnpiZ2Vlay5pbmZv",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nzbgeek.png",
+    "update": "gh:sinnafuls/hayase-ext",
+    "code": "gh:sinnafuls/hayase-ext/index",
+    "options": {
+      "apikey": {
+        "type": "string",
+        "description": "Your NZBGeek API key. Find it at nzbgeek.info → Account → API Settings.",
+        "default": ""
+      },
+      "baseUrl": {
+        "type": "string",
+        "description": "API base URL. Override only if NZBGeek changes their endpoint.",
+        "default": "https://api.nzbgeek.info"
+      },
+      "category": {
+        "type": "string",
+        "description": "Comma-separated Newznab category IDs to search. 5070 = Anime.",
+        "default": "5070"
+      }
+    }
+  },
+  {
+    "manifestVersion": 2,
+    "name": "AnimeTosho",
+    "id": "animetosho-nzb",
+    "version": "0.0.9",
+    "type": "nzb",
+    "accuracy": "high",
+    "ratio": 0,
+    "media": "sub",
+    "languages": ["US"],
+    "icon": "https://animetosho.org/inc/favicon.ico",
+    "update": "gh:sinnafuls/hayase-ext",
+    "code": "gh:sinnafuls/hayase-ext/animetosho-nzb"
+  }
+]
