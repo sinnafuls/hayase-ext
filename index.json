@@ -3,7 +3,7 @@
     "manifestVersion": 2,
     "name": "NZBGeek",
     "id": "nzbgeek",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Search NZBGeek for anime episodes, batches, and movies via the Newznab API.",
     "type": "nzb",
     "accuracy": "medium",

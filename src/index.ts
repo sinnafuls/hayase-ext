@@ -140,33 +140,29 @@ async function batchSeason (query: NZBQuery, options: ExtensionOptions): Promise
 }
 
 const extension = {
-  async test (options: ExtensionOptions = {}): Promise<boolean> {
-    const apikey = requireKey(options)
-    const url = `${baseOf(options)}/api?t=caps&apikey=${encodeURIComponent(apikey)}&o=json`
+  async test (): Promise<boolean> {
+    // Hayase calls test() with no arguments, so we can't read the API key
+    // from options here. Limit this to a reachability check against the
+    // default base; the actual API key is validated lazily inside
+    // single()/batch()/movie() where Hayase does pass options.
+    const url = `${DEFAULT_BASE}/api?t=caps&o=json`
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 15_000)
-    let res: Response
     try {
-      res = await fetch(url, {
+      const res = await fetch(url, {
         headers: { Accept: 'application/json' },
         signal: controller.signal
       })
+      if (!res.ok) throw new Error(`NZBGeek returned HTTP ${res.status}. The indexer may be down.`)
+      return true
     } catch (err) {
       if ((err as Error).name === 'AbortError') {
-        throw new Error('NZBGeek did not respond within 15 seconds. Check that the API base URL is reachable.')
+        throw new Error('NZBGeek did not respond within 15 seconds. Check your network or the indexer status.')
       }
       throw new Error(`Could not reach NZBGeek: ${(err as Error).message}`)
     } finally {
       clearTimeout(timer)
     }
-    const text = await res.text()
-    if (!res.ok) throw new Error(`NZBGeek not reachable (HTTP ${res.status})`)
-    if (text.includes('<error')) {
-      const code = /code="([^"]+)"/.exec(text)?.[1]
-      const desc = /description="([^"]+)"/.exec(text)?.[1]
-      throw new Error(`NZBGeek auth failed${code ? ` (${code})` : ''}: ${desc || 'check your API key'}`)
-    }
-    return true
   },
 
   async single (query: NZBQuery, options: ExtensionOptions = {}): Promise<string | undefined> {
