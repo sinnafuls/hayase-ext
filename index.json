@@ -3,7 +3,7 @@
     "manifestVersion": 2,
     "name": "NZBGeek",
     "id": "nzbgeek",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "description": "Search NZBGeek for anime episodes, batches, and movies via the Newznab API.",
     "type": "nzb",
     "accuracy": "high",
@@ -12,7 +12,7 @@
     "url": "aHR0cHM6Ly9hcGkubnpiZ2Vlay5pbmZv",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nzbgeek.png",
     "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
-    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/index.js",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/nzbgeek.js",
     "options": {
       "apikey": {
         "type": "string",
@@ -114,5 +114,56 @@
         "default": true
       }
     }
+  },
+  {
+    "manifestVersion": 2,
+    "name": "AnimeTosho (torrent)",
+    "id": "animetosho-torrent-self",
+    "version": "0.1.3",
+    "description": "AnimeTosho torrent search by AniDB EID/AID — magnet or .torrent links to the byte-identical mirrors of fansub releases.",
+    "type": "torrent",
+    "accuracy": "high",
+    "media": "sub",
+    "languages": ["JP", "US"],
+    "url": "aHR0cHM6Ly9mZWVkLmFuaW1ldG9zaG8ub3Jn",
+    "icon": "https://animetosho.org/inc/favicon.ico",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/animetosho-torrent.js",
+    "options": {
+      "useTorrent": {
+        "type": "boolean",
+        "description": "Use .torrent files instead of magnet links. Try this if your ISP blocks DHT/UDP trackers.",
+        "default": false
+      }
+    }
+  },
+  {
+    "manifestVersion": 2,
+    "name": "NekoBT",
+    "id": "nekobt-self",
+    "version": "0.0.6",
+    "description": "NekoBT private-tracker-style index — TVDB/TMDB/IMDB to NekoBT id via mapping JSON.",
+    "type": "torrent",
+    "accuracy": "high",
+    "media": "sub",
+    "languages": ["US"],
+    "url": "aHR0cHM6Ly9uZWtvYnQudG8vYXBpL3YxLw==",
+    "icon": "https://nekobt.to/cdn/pfp/null/64",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/nekobt.js"
+  },
+  {
+    "manifestVersion": 2,
+    "name": "SeaDex",
+    "id": "seadex-self",
+    "version": "0.0.6",
+    "description": "SeaDex curation layer (releases.moe) — community-picked best/alt anime releases by AniList id.",
+    "type": "torrent",
+    "accuracy": "high",
+    "media": "sub",
+    "languages": ["US"],
+    "icon": "https://releases.moe/favicon.png",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/seadex.js"
   }
 ]

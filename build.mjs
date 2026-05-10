@@ -4,10 +4,13 @@ const watch = process.argv.includes('--watch')
 
 const config = {
   entryPoints: {
-    index: 'src/index.ts',
-    nyaa: 'src/nyaa.ts',
+    nzbgeek: 'src/nzbgeek.ts',
     althub: 'src/althub.ts',
-    animetosho: 'src/animetosho.ts'
+    animetosho: 'src/animetosho.ts',
+    nyaa: 'src/nyaa.ts',
+    nekobt: 'src/nekobt.js',
+    seadex: 'src/seadex.js',
+    'animetosho-torrent': 'src/animetosho-torrent.js'
   },
   bundle: true,
   format: 'esm',
