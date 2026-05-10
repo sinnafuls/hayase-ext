@@ -3,8 +3,15 @@ import type { ExtensionOptions, NewznabItem, NZBQuery } from './types.js'
 
 const DEFAULT_BASE = 'https://api.nzbgeek.info'
 const DEFAULT_CATEGORY = '5070'
-const TV_CATS = '5000,5030,5040,5070'
 const MOVIE_CATS = '2000,2020,2030,2040,2045,2050,2060'
+
+const BRACKET_RE = /\[[^\]]*\]|\([^)]*\)/g
+const QUALITY_TOKEN_RE = /\b(?:2160p|1080p|720p|540p|480p|4k|uhd|x265|x264|h\.?265|h\.?264|hevc|avc|xvid|10bit|8bit|bluray|blu-?ray|bd|webrip|web-?dl|webdl|dvdrip|hdrip|aac|flac|ac3|dts|eac3|opus|multisub|multi[-.]?subtitle|dual[-.]?audio|raw|remux|repack|proper|hdr10?|crc32)\b/gi
+const HEX_TAG_RE = /\b[a-f0-9]{8}\b/gi
+const GROUP_SUFFIX_RE = /-[A-Z][A-Za-z0-9]+$/
+
+const RES_RE = /\b(2160p|1080p|720p|540p|480p)\b/i
+const BATCH_TAG_RE = /\b(?:BD[-\s]?BOX|Box(?:set)?|Complete|Batch|Season|S\d{1,2}|\d{1,3}\s*[-~]\s*\d{1,3})\b/i
 
 function requireKey (options: ExtensionOptions): string {
   const k = options.apikey?.trim()
@@ -22,20 +29,56 @@ function isMovieQuery (q: NZBQuery): boolean {
   return !!(q.imdbId || q.tmdbId)
 }
 
-function score (item: NewznabItem, query: NZBQuery): number {
+function cleanTitle (raw: string): string {
+  if (!raw) return ''
+  return raw
+    .replace(BRACKET_RE, ' ')
+    .replace(QUALITY_TOKEN_RE, ' ')
+    .replace(HEX_TAG_RE, ' ')
+    .replace(GROUP_SUFFIX_RE, ' ')
+    .replace(/[._]+/g, ' ')
+    .replace(/[^\w\s\-:]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function uniqueCandidates (titles: string[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const t of titles ?? []) {
+    const c = cleanTitle(t)
+    const k = c.toLowerCase()
+    if (c && !seen.has(k)) {
+      seen.add(k)
+      out.push(c)
+    }
+  }
+  return out
+}
+
+function extractResolution (name: string): string | undefined {
+  return RES_RE.exec(name ?? '')?.[1]?.toLowerCase()
+}
+
+function score (item: NewznabItem, query: NZBQuery, wantedRes: string | undefined): number {
   let s = 0
   const lc = item.title.toLowerCase()
 
   if (query.name && lc.includes(query.name.toLowerCase())) s += 200
+  const cleanedName = cleanTitle(query.name).toLowerCase()
+  if (cleanedName && lc.includes(cleanedName)) s += 100
 
   for (const t of query.titles ?? []) {
-    if (t && lc.includes(t.toLowerCase())) { s += 25; break }
+    if (t && lc.includes(t.toLowerCase())) { s += 50; break }
   }
 
   if (query.episode) {
     const padded = String(query.episode).padStart(2, '0')
-    if (new RegExp(`(?:e|ep|episode|-\\s)${padded}\\b`, 'i').test(item.title)) s += 30
+    const re = new RegExp(`(?:^|[^\\d])${padded}(?:[^\\d]|$)`, 'i')
+    if (re.test(item.title)) s += 30
   }
+
+  if (wantedRes && lc.includes(wantedRes)) s += 50
 
   if (item.size > 0) s += Math.min(8, Math.log10(item.size))
 
@@ -44,25 +87,10 @@ function score (item: NewznabItem, query: NZBQuery): number {
 
 function pickBest (items: NewznabItem[], query: NZBQuery): NewznabItem | undefined {
   if (!items.length) return undefined
-  const ranked = items
-    .map(it => ({ it, s: score(it, query) }))
-    .sort((a, b) => b.s - a.s)
-  return ranked[0]?.it
-}
-
-async function tvSearch (query: NZBQuery, options: ExtensionOptions, episode?: number): Promise<NewznabItem[]> {
-  return newznabSearch({
-    fetch: query.fetch,
-    baseUrl: baseOf(options),
-    apikey: requireKey(options),
-    params: {
-      t: 'tvsearch',
-      tvdbid: query.tvdbId,
-      season: 1,
-      ep: episode,
-      cat: options.category || TV_CATS
-    }
-  })
+  const wantedRes = extractResolution(query.name)
+  return items
+    .map(it => ({ it, s: score(it, query, wantedRes) }))
+    .sort((a, b) => b.s - a.s)[0]?.it
 }
 
 async function movieSearch (query: NZBQuery, options: ExtensionOptions): Promise<NewznabItem[]> {
@@ -92,48 +120,66 @@ async function textSearch (query: NZBQuery, options: ExtensionOptions, q: string
   })
 }
 
+async function searchTitleEp (query: NZBQuery, options: ExtensionOptions, candidates: string[], padded: string): Promise<NewznabItem | undefined> {
+  for (const title of candidates) {
+    const term = padded ? `${title} ${padded}` : title
+    const items = await textSearch(query, options, term)
+    const best = pickBest(items, query)
+    if (best) return best
+  }
+  return undefined
+}
+
 async function singleEpisode (query: NZBQuery, options: ExtensionOptions): Promise<string | undefined> {
-  let items: NewznabItem[] = []
-
+  // Movies with imdb/tmdb id: try movie endpoint first (works for live-action;
+  // anime movies usually live in cat 5070 and won't, so we fall through).
   if (isMovieQuery(query)) {
-    items = await movieSearch(query, options)
-  } else if (query.tvdbId && query.episode) {
-    items = await tvSearch(query, options, query.episode)
-    if (!items.length && query.absoluteEpisodeNumber && query.absoluteEpisodeNumber !== query.episode) {
-      items = await tvSearch(query, options, query.absoluteEpisodeNumber)
-    }
+    const items = await movieSearch(query, options)
+    const best = pickBest(items, query)
+    if (best) return best.link
   }
 
-  if (!items.length) {
-    const title = query.titles?.[0]
-    if (!title) return undefined
-    const ep = query.episode ? ` ${String(query.episode).padStart(2, '0')}` : ''
-    items = await textSearch(query, options, `${title}${ep}`)
+  const candidates = uniqueCandidates(query.titles ?? [])
+  if (!candidates.length) return undefined
+
+  // Primary: text search "<title> <padded ep>". Iterates titles[] until a hit.
+  // (NZBGeek's tvsearch+tvdbid returns 0 for anime cat 5070 — skip it.)
+  if (query.episode) {
+    const padded = String(query.episode).padStart(2, '0')
+    const hit = await searchTitleEp(query, options, candidates, padded)
+    if (hit) return hit.link
   }
 
-  return pickBest(items, query)?.link
+  // Fallback: absolute episode number for non-standard anime numbering.
+  if (query.absoluteEpisodeNumber && query.absoluteEpisodeNumber !== query.episode) {
+    const padded = String(query.absoluteEpisodeNumber).padStart(2, '0')
+    const hit = await searchTitleEp(query, options, candidates, padded)
+    if (hit) return hit.link
+  }
+
+  // Last resort: broad title search, score will surface anything ep-tagged.
+  const broad = await textSearch(query, options, candidates[0]!)
+  return pickBest(broad, query)?.link
 }
 
 async function batchSeason (query: NZBQuery, options: ExtensionOptions): Promise<string | undefined> {
-  let items: NewznabItem[] = []
+  const candidates = uniqueCandidates(query.titles ?? [])
+  if (!candidates.length) return undefined
 
-  if (query.tvdbId) {
-    items = await tvSearch(query, options)
-  }
+  const title = candidates[0]!
+  const wantedRes = extractResolution(query.name)
 
-  if (!items.length) {
-    const title = query.titles?.[0]
-    if (!title) return undefined
-    items = await textSearch(query, options, `${title} batch`)
-    if (!items.length) items = await textSearch(query, options, `${title} complete`)
-  }
+  // NZBGeek anime is heavily Moozzi2 BD-BOX uploads — that's the dominant batch format.
+  let items = await textSearch(query, options, `${title} BD-BOX`)
+  if (!items.length) items = await textSearch(query, options, `${title} Batch`)
+  if (!items.length) items = await textSearch(query, options, title)
+  if (!items.length) return undefined
 
-  const boosted = items.map(it => {
-    const bonus = /\b(batch|complete|season|s\d{1,2})\b/i.test(it.title) ? 75 : 0
-    return { it, bonus }
-  })
-  const ranked = boosted
-    .map(x => ({ it: x.it, s: score(x.it, query) + x.bonus }))
+  const ranked = items
+    .map(it => {
+      const bonus = BATCH_TAG_RE.test(it.title) ? 100 : 0
+      return { it, s: score(it, query, wantedRes) + bonus }
+    })
     .sort((a, b) => b.s - a.s)
 
   return ranked[0]?.it.link
@@ -141,10 +187,8 @@ async function batchSeason (query: NZBQuery, options: ExtensionOptions): Promise
 
 const extension = {
   async test (): Promise<boolean> {
-    // Hayase calls test() with no arguments, so we can't read the API key
-    // from options here. Limit this to a reachability check against the
-    // default base; the actual API key is validated lazily inside
-    // single()/batch()/movie() where Hayase does pass options.
+    // Hayase invokes test() with no arguments — no options, no API key.
+    // Reachability check only; key gets validated lazily in search methods.
     const url = `${DEFAULT_BASE}/api?t=caps&o=json`
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 15_000)
