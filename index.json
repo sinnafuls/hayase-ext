@@ -65,6 +65,21 @@
   },
   {
     "manifestVersion": 2,
+    "name": "AnimeTosho",
+    "id": "animetosho-self",
+    "version": "0.1.0",
+    "description": "Look up byte-matched NZBs by torrent infoHash via AnimeTosho's mirror catalog.",
+    "type": "nzb",
+    "accuracy": "high",
+    "media": "sub",
+    "languages": ["JP", "US"],
+    "url": "aHR0cHM6Ly9mZWVkLmFuaW1ldG9zaG8ub3Jn",
+    "icon": "https://animetosho.org/inc/favicon.ico",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/animetosho.js"
+  },
+  {
+    "manifestVersion": 2,
     "name": "Nyaa",
     "id": "nyaa",
     "version": "0.1.1",

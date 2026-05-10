@@ -17,11 +17,14 @@ All three extensions show up. Open the cog (⚙) on each to configure if it need
 
 | Extension | Type | Needs config? | Notes |
 | --- | --- | --- | --- |
+| **AnimeTosho** | NZB | None | Looks up NZBs by torrent infoHash via [feed.animetosho.org](https://feed.animetosho.org). Byte-identical mirror of fansub torrents → highest chance Hayase actually streams from Usenet. The upstream `exten.pages.dev` extension has a bug (its `single()` is empty so single-file torrents never match); this version implements both. |
 | **NZBGeek** | NZB | API key | Newznab indexer. Strong on BD remuxes (Moozzi2, KAF). Get a key at [nzbgeek.info → Account → API Settings](https://nzbgeek.info). |
 | **AltHub** | NZB | API key | Newznab indexer with better fansub coverage (Erai-raws, Almighty, Ember). Get a key at [althub.co.za → Profile → API](https://althub.co.za). |
 | **Nyaa** | Torrent | None | Direct Nyaa.si RSS — anime torrents with infoHash extraction. |
 
 NZB extensions also need a **Usenet provider** configured in Hayase (Settings → NZB Client). Without it, Hayase finds NZBs but has nowhere to download from.
+
+For NZBs to actually deliver bytes, the NZB's file must match the torrent's file by **filename or filesize** (Hayase's matching gate in `torrent-client/nzb.ts`). AnimeTosho is byte-identical by design; NZBGeek/AltHub work when the indexer happens to have the same release as your torrent (often true for BD remuxes, rarely true for fansubs).
 
 ## Issues
 

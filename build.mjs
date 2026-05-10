@@ -6,7 +6,8 @@ const config = {
   entryPoints: {
     index: 'src/index.ts',
     nyaa: 'src/nyaa.ts',
-    althub: 'src/althub.ts'
+    althub: 'src/althub.ts',
+    animetosho: 'src/animetosho.ts'
   },
   bundle: true,
   format: 'esm',
