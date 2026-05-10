@@ -30,5 +30,42 @@
         "default": "5070"
       }
     }
+  },
+  {
+    "manifestVersion": 2,
+    "name": "Nyaa",
+    "id": "nyaa",
+    "version": "0.1.0",
+    "description": "Search Nyaa.si directly via its RSS feed — anime torrents with infoHash extraction.",
+    "type": "torrent",
+    "accuracy": "medium",
+    "media": "sub",
+    "languages": ["JP", "US"],
+    "url": "aHR0cHM6Ly9ueWFhLnNp",
+    "icon": "https://nyaa.si/static/favicon.png",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/nyaa.js",
+    "options": {
+      "domain": {
+        "type": "string",
+        "description": "Nyaa base URL. Override to use a mirror (e.g. https://nyaa.land) if nyaa.si is blocked.",
+        "default": "https://nyaa.si"
+      },
+      "category": {
+        "type": "string",
+        "description": "Nyaa category. 1_2 = Anime English-translated, 1_3 = Non-English, 1_4 = Raw, 0_0 = All.",
+        "default": "1_2"
+      },
+      "filter": {
+        "type": "string",
+        "description": "Quality filter. 0 = no filter, 1 = no remakes, 2 = trusted only.",
+        "default": "0"
+      },
+      "appendResolution": {
+        "type": "boolean",
+        "description": "Include the requested resolution (e.g. 1080p) in the search query when available.",
+        "default": true
+      }
+    }
   }
 ]

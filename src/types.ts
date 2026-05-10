@@ -36,3 +36,17 @@ export interface NewznabItem {
   size: number
   pubDate: string
 }
+
+export interface TorrentResult {
+  title: string
+  link: string
+  id?: number
+  seeders: number
+  leechers: number
+  downloads: number
+  accuracy: 'high' | 'medium' | 'low'
+  hash: string
+  size: number
+  date: Date
+  type?: 'batch' | 'best' | 'alt'
+}
