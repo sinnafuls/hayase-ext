@@ -3,7 +3,7 @@
     "manifestVersion": 2,
     "name": "NZBGeek",
     "id": "nzbgeek",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Search NZBGeek for anime episodes, batches, and movies via the Newznab API.",
     "type": "nzb",
     "accuracy": "high",
@@ -12,7 +12,7 @@
     "url": "aHR0cHM6Ly9hcGkubnpiZ2Vlay5pbmZv",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nzbgeek.png",
     "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
-    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.js",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/index.js",
     "options": {
       "apikey": {
         "type": "string",
@@ -35,7 +35,7 @@
     "manifestVersion": 2,
     "name": "AltHub",
     "id": "althub",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Search AltHub (althub.co.za) — Newznab indexer with strong fansub coverage.",
     "type": "nzb",
     "accuracy": "high",
@@ -44,7 +44,7 @@
     "url": "aHR0cHM6Ly9hcGkuYWx0aHViLmNvLnph",
     "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sabnzbd.png",
     "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
-    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/althub.js",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/althub.js",
     "options": {
       "apikey": {
         "type": "string",
@@ -67,7 +67,7 @@
     "manifestVersion": 2,
     "name": "Nyaa",
     "id": "nyaa",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Search Nyaa.si directly via its RSS feed — anime torrents with infoHash extraction.",
     "type": "torrent",
     "accuracy": "medium",
@@ -76,7 +76,7 @@
     "url": "aHR0cHM6Ly9ueWFhLnNp",
     "icon": "https://nyaa.si/static/favicon.png",
     "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
-    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/nyaa.js",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/nyaa.js",
     "options": {
       "domain": {
         "type": "string",

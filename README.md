@@ -36,7 +36,7 @@ A useful issue includes:
 
 ```bash
 npm install
-npm run build       # bundles src/ → index.js, althub.js, nyaa.js
+npm run build       # bundles src/ → dist/{index,althub,nyaa}.js
 npm run watch       # rebuild on save
 npm run typecheck   # tsc --noEmit
 ```

@@ -12,7 +12,7 @@ const config = {
   format: 'esm',
   target: 'es2022',
   platform: 'browser',
-  outdir: '.',
+  outdir: 'dist',
   minify: !watch,
   legalComments: 'none',
   sourcemap: false,
@@ -22,7 +22,7 @@ const config = {
 if (watch) {
   const ctx = await esbuild.context(config)
   await ctx.watch()
-  console.log('watching src/ — index.js and nyaa.js will rebuild on save')
+  console.log('watching src/ — dist/*.js will rebuild on save')
 } else {
   await esbuild.build(config)
 }
