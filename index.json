@@ -3,7 +3,7 @@
     "manifestVersion": 2,
     "name": "NZBGeek",
     "id": "nzbgeek",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Search NZBGeek for anime episodes, batches, and movies via the Newznab API.",
     "type": "nzb",
     "accuracy": "high",
@@ -23,6 +23,38 @@
         "type": "string",
         "description": "API base URL. Override only if NZBGeek changes their endpoint.",
         "default": "https://api.nzbgeek.info"
+      },
+      "category": {
+        "type": "string",
+        "description": "Comma-separated Newznab category IDs to search. 5070 = Anime.",
+        "default": "5070"
+      }
+    }
+  },
+  {
+    "manifestVersion": 2,
+    "name": "AltHub",
+    "id": "althub",
+    "version": "0.1.0",
+    "description": "Search AltHub (althub.co.za) — Newznab indexer with strong fansub coverage.",
+    "type": "nzb",
+    "accuracy": "high",
+    "media": "sub",
+    "languages": ["US"],
+    "url": "aHR0cHM6Ly9hcGkuYWx0aHViLmNvLnph",
+    "icon": "https://althub.co.za/favicon.ico",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/althub.js",
+    "options": {
+      "apikey": {
+        "type": "string",
+        "description": "Your AltHub API key. Find it at althub.co.za → Profile → API.",
+        "default": ""
+      },
+      "baseUrl": {
+        "type": "string",
+        "description": "API base URL. Override only if AltHub changes their endpoint.",
+        "default": "https://api.althub.co.za"
       },
       "category": {
         "type": "string",

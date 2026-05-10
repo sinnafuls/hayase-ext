@@ -5,7 +5,8 @@ const watch = process.argv.includes('--watch')
 const config = {
   entryPoints: {
     index: 'src/index.ts',
-    nyaa: 'src/nyaa.ts'
+    nyaa: 'src/nyaa.ts',
+    althub: 'src/althub.ts'
   },
   bundle: true,
   format: 'esm',
