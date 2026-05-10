@@ -30,7 +30,7 @@ For NZBs to actually deliver bytes, the NZB's file must match the torrent's file
 | Extension | Needs config? | Notes |
 | --- | --- | --- |
 | **Nyaa** | None | Direct [nyaa.si](https://nyaa.si) RSS — anime torrents with infoHash extraction. |
-| **AnimeTosho (torrent)** | Optional `useTorrent` | AniDB-based search via [feed.animetosho.org](https://feed.animetosho.org). Toggle `useTorrent` if your ISP blocks DHT/UDP trackers (returns `.torrent` files instead of magnet). |
+| **AnimeTosho (torrent)** | None | AniDB-based search via [feed.animetosho.org](https://feed.animetosho.org). Returns `.torrent` URLs by default (deviation from upstream, which uses magnet) so Hayase has file metadata immediately — required for the NZB pipeline to fire on dead torrents. Toggle `useTorrent` off if you specifically want magnet links. |
 | **NekoBT** | None | Private-tracker-style index at [nekobt.to](https://nekobt.to). Maps TVDB/TMDB/IMDB → NekoBT id via an external JSON (vendored — fetched at runtime from a fixed GitHub URL). |
 | **SeaDex** | None | Curation layer at [releases.moe](https://releases.moe). Returns community-picked **best** / **alt** releases by AniList id — exposes hashes only, Hayase finds peers via DHT. |
 

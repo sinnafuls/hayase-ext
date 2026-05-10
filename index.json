@@ -119,8 +119,8 @@
     "manifestVersion": 2,
     "name": "AnimeTosho (torrent)",
     "id": "animetosho-torrent-self",
-    "version": "0.1.3",
-    "description": "AnimeTosho torrent search by AniDB EID/AID — magnet or .torrent links to the byte-identical mirrors of fansub releases.",
+    "version": "0.1.4",
+    "description": "AnimeTosho torrent search by AniDB EID/AID — returns .torrent links so Hayase has file metadata immediately and can fire NZB extensions even on dead torrents.",
     "type": "torrent",
     "accuracy": "high",
     "media": "sub",
@@ -132,8 +132,8 @@
     "options": {
       "useTorrent": {
         "type": "boolean",
-        "description": "Use .torrent files instead of magnet links. Try this if your ISP blocks DHT/UDP trackers.",
-        "default": false
+        "description": "Use .torrent files (default) so file metadata is known immediately — required for the NZB pipeline to fire on dead torrents. Disable to use magnet links instead.",
+        "default": true
       }
     }
   },
