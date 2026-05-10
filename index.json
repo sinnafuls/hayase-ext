@@ -42,7 +42,7 @@
     "media": "sub",
     "languages": ["US"],
     "url": "aHR0cHM6Ly9hcGkuYWx0aHViLmNvLnph",
-    "icon": "https://althub.co.za/favicon.ico",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sabnzbd.png",
     "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
     "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/althub.js",
     "options": {
