@@ -10,7 +10,9 @@ const config = {
     nyaa: 'src/nyaa.ts',
     nekobt: 'src/nekobt.js',
     seadex: 'src/seadex.js',
-    'animetosho-torrent': 'src/animetosho-torrent.js'
+    'animetosho-torrent': 'src/animetosho-torrent.js',
+    subsplease: 'src/subsplease.ts',
+    acgrip: 'src/acgrip.ts'
   },
   bundle: true,
   format: 'esm',

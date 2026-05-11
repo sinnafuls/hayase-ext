@@ -154,6 +154,50 @@
   },
   {
     "manifestVersion": 2,
+    "name": "SubsPlease",
+    "id": "subsplease-self",
+    "version": "0.1.0",
+    "description": "SubsPlease releases via their JSON API. Single trusted group, byte-identical to their published magnets.",
+    "type": "torrent",
+    "accuracy": "high",
+    "media": "sub",
+    "languages": ["US"],
+    "url": "aHR0cHM6Ly9zdWJzcGxlYXNlLm9yZw==",
+    "icon": "https://subsplease.org/wp-content/uploads/2020/05/cropped-cropped-icon-32x32.png",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/subsplease.js",
+    "options": {
+      "resolution": {
+        "type": "string",
+        "description": "Preferred resolution: 480, 720, or 1080. Overrides the query resolution. Falls back to highest available if not present.",
+        "default": "1080"
+      }
+    }
+  },
+  {
+    "manifestVersion": 2,
+    "name": "acg.rip",
+    "id": "acgrip-self",
+    "version": "0.1.0",
+    "description": "Search acg.rip — Chinese-leaning anime tracker with broad CJK fansub coverage. Uses .torrent URLs as identifiers (RSS doesn't expose infoHash).",
+    "type": "torrent",
+    "accuracy": "medium",
+    "media": "sub",
+    "languages": ["CN", "JP"],
+    "url": "aHR0cHM6Ly9hY2cucmlw",
+    "icon": "https://acg.rip/favicon.ico",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/acgrip.js",
+    "options": {
+      "domain": {
+        "type": "string",
+        "description": "Base URL. Override only if acg.rip moves domains.",
+        "default": "https://acg.rip"
+      }
+    }
+  },
+  {
+    "manifestVersion": 2,
     "name": "SeaDex",
     "id": "seadex-self",
     "version": "0.0.7",
