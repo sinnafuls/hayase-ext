@@ -1,5 +1,11 @@
-// Vendored verbatim from https://exten.pages.dev/seadex.js
-// Source: ThaUnknown's exten.pages.dev — kept as-is for upstream parity.
+// Vendored from https://exten.pages.dev/seadex.js with one deliberate
+// deviation: `link` is omitted (undefined) instead of being set to the
+// raw infoHash string. Hayase's dedupe in extensions.ts merges results
+// by hash with `dupe.link ??= entry.link` — when SeaDex returns first
+// with link=infoHash, it locks the merged result to a hash-only link
+// and Nyaa's real .torrent URL never wins, causing the "Loading torrent
+// metadata" hang on the green-tick best releases. With link=undefined,
+// the dedupe accepts Nyaa's URL when both surface the same hash.
 export default new class SeaDex {
   url=atob("aHR0cHM6Ly9yZWxlYXNlcy5tb2UvYXBpL2NvbGxlY3Rpb25zL2VudHJpZXMvcmVjb3Jkcw==");
   async single({anilistId: anilistId, titles: titles, episodeCount: episodeCount}) {
@@ -11,7 +17,7 @@ export default new class SeaDex {
     const {trs: trs} = items[0].expand;
     return trs.filter(({infoHash: infoHash, files: files}) => "<redacted>" !== infoHash && (!episodeCount || 1 === episodeCount || 1 !== files.length)).map(torrent => ({
       hash: torrent.infoHash,
-      link: torrent.infoHash,
+      link: void 0,
       title: 1 === torrent.files.length ? torrent.files[0].name : `[${torrent.releaseGroup}] ${titles[0]} ${torrent.dualAudio ? "Dual Audio" : ""}`,
       size: torrent.files.reduce((prev, curr) => prev + curr.length, 0),
       type: torrent.isBest ? "best" : "alt",

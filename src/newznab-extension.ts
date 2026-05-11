@@ -1,4 +1,5 @@
 import { newznabSearch } from './newznab.js'
+import { nzbMatchesAnyFile } from './nzb-precheck.js'
 import type { ExtensionOptions, NewznabItem, NZBQuery } from './types.js'
 
 export interface NewznabDefaults {
@@ -17,6 +18,8 @@ const RES_RE = /\b(2160p|1080p|720p|540p|480p)\b/i
 const BATCH_TAG_RE = /\b(?:BD[-\s]?BOX|Box(?:set)?|Complete|Batch|Season|S\d{1,2}|\d{1,3}\s*[-~]\s*\d{1,3})\b/i
 const SEASON_IN_TITLE_RE = /\b(?:Season\s*\d+|\d+(?:st|nd|rd|th)\s*Season|S\d{1,2}\b)/i
 const RESULT_SEASON_RE = /\bS(\d{1,2})(?:E\d+)?\b|\b(\d+)(?:st|nd|rd|th)\s*Season\b|\bSeason\s*(\d+)\b/i
+
+const PRECHECK_TOP_N = 3
 
 function cleanTitle (raw: string): string {
   if (!raw) return ''
@@ -77,6 +80,13 @@ function isMovieQuery (q: NZBQuery): boolean {
   return !!(q.imdbId || q.tmdbId)
 }
 
+function expectedFiles (query: NZBQuery): string[] {
+  const q = query as NZBQuery & { file?: string, files?: string[] }
+  if (Array.isArray(q.files)) return q.files
+  if (typeof q.file === 'string' && q.file) return [q.file]
+  return []
+}
+
 interface ScoreContext {
   wantedRes?: string
   wantedSeason: number
@@ -123,12 +133,32 @@ function buildContext (query: NZBQuery): ScoreContext {
   }
 }
 
-function pickBest (items: NewznabItem[], query: NZBQuery): NewznabItem | undefined {
+// Sort items by score (best first), pre-check the top N against the torrent's
+// expected filename, return the first NZB whose internal file matches. If none
+// match (or pre-check is inconclusive), returns the top-scored URL anyway —
+// pre-check is a hint to the dedupe gate downstream, not a hard filter when
+// we're flying blind.
+async function rankAndMatch (
+  items: NewznabItem[],
+  query: NZBQuery,
+  bonusFn: (item: NewznabItem) => number = () => 0
+): Promise<string | undefined> {
   if (!items.length) return undefined
   const ctx = buildContext(query)
-  return items
-    .map(it => ({ it, s: score(it, query, ctx) }))
-    .sort((a, b) => b.s - a.s)[0]?.it
+  const ranked = items
+    .map(it => ({ it, s: score(it, query, ctx) + bonusFn(it) }))
+    .sort((a, b) => b.s - a.s)
+
+  const expected = expectedFiles(query)
+  if (!expected.length) return ranked[0]?.it.link
+
+  for (const { it } of ranked.slice(0, PRECHECK_TOP_N)) {
+    if (await nzbMatchesAnyFile(query.fetch, it.link, expected)) return it.link
+  }
+  // None of the top-N had a confirmed filename match — return the best-ranked
+  // URL anyway. Hayase's nzb.ts gate will silently drop it if it doesn't
+  // match, so worst case is the same as before pre-check existed.
+  return ranked[0]?.it.link
 }
 
 export function createNewznabExtension (d: NewznabDefaults) {
@@ -172,8 +202,8 @@ export function createNewznabExtension (d: NewznabDefaults) {
   async function singleEpisode (query: NZBQuery, options: ExtensionOptions): Promise<string | undefined> {
     if (isMovieQuery(query)) {
       const items = await movieLookup(query, options)
-      const best = pickBest(items, query)
-      if (best) return best.link
+      const matched = await rankAndMatch(items, query)
+      if (matched) return matched
     }
 
     const candidates = uniqueCandidates(query.titles ?? [])
@@ -192,8 +222,8 @@ export function createNewznabExtension (d: NewznabDefaults) {
           : [`${title} ${sePadded}`, `${title} ${epPadded}`]
         for (const term of terms) {
           const items = await textSearch(query, options, term)
-          const best = pickBest(items, query)
-          if (best) return best.link
+          const matched = await rankAndMatch(items, query)
+          if (matched) return matched
         }
       }
     }
@@ -202,13 +232,13 @@ export function createNewznabExtension (d: NewznabDefaults) {
       const padded = String(query.absoluteEpisodeNumber).padStart(2, '0')
       for (const title of candidates) {
         const items = await textSearch(query, options, `${title} ${padded}`)
-        const best = pickBest(items, query)
-        if (best) return best.link
+        const matched = await rankAndMatch(items, query)
+        if (matched) return matched
       }
     }
 
     const broad = await textSearch(query, options, candidates[0]!)
-    return pickBest(broad, query)?.link
+    return rankAndMatch(broad, query)
   }
 
   async function batchSeason (query: NZBQuery, options: ExtensionOptions): Promise<string | undefined> {
@@ -221,15 +251,7 @@ export function createNewznabExtension (d: NewznabDefaults) {
     if (!items.length) items = await textSearch(query, options, title)
     if (!items.length) return undefined
 
-    const ctx = buildContext(query)
-    const ranked = items
-      .map(it => {
-        const bonus = BATCH_TAG_RE.test(it.title) ? 100 : 0
-        return { it, s: score(it, query, ctx) + bonus }
-      })
-      .sort((a, b) => b.s - a.s)
-
-    return ranked[0]?.it.link
+    return rankAndMatch(items, query, it => BATCH_TAG_RE.test(it.title) ? 100 : 0)
   }
 
   return {
