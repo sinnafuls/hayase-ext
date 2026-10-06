@@ -9,7 +9,10 @@
 //  - batch() and movie() are no-ops upstream — NekoBT's index is per-episode.
 //  - imdbId routing dropped (upstream removed it).
 //
-// Kept verbatim from upstream so future refreshes are a clean copy-paste.
+// One deliberate deviation: single() returns [] instead of throwing when the
+// show has no tvdbId/tmdbId or NekoBT has no media for it. Unmapped shows
+// (typically new seasons) otherwise surface an "encountered an error" banner,
+// and an id-less search would match an arbitrary media entry.
 export default new class NekoBT {
   url=atob("aHR0cHM6Ly9uZWtvYnQudG8vYXBpL3YxLw==");
   async _fetch(fetch, search) {
@@ -20,12 +23,13 @@ export default new class NekoBT {
   }
   async single({tvdbId: tvdbId, tvdbEId: tvdbEId, tmdbId: tmdbId, episode: episode, fetch: fetch}, options) {
     if (!navigator.onLine) return [];
+    if (!tvdbId && !tmdbId) return [];
     const mediaParams = new URLSearchParams({
       limit: "1"
     });
     tvdbId && mediaParams.append("tvdbid", tvdbId.toString()), tmdbId && mediaParams.append("tmdbid", tmdbId);
     const mappings = await this._fetch(fetch, mediaParams);
-    if (!mappings?.media) throw new Error("NekoBT: No media found for the given anime!");
+    if (!mappings?.media) return [];
     const ep = mappings.media.episodes?.find(ep => ep.tvdbId === tvdbEId) ?? mappings.media.episodes?.find(ep => ep.episode === episode), searchParams = new URLSearchParams({
       media_id: mappings.media.id,
       fansub_lang: "en,enm",

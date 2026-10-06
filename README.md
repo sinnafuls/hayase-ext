@@ -1,6 +1,6 @@
 # hayase-ext
 
-A self-hosted set of [Hayase](https://hayase.watch) anime extensions — three NZB indexers and four torrent indexers. Vendored copies of the public `exten.pages.dev` set plus a few of our own (NZBGeek, AltHub, our self-hosted Nyaa, plus a working AnimeTosho NZB to replace the upstream one whose `single()` is empty).
+A self-hosted set of [Hayase](https://hayase.watch) anime extensions — two NZB indexers and four torrent indexers. Vendored copies of the public `exten.pages.dev` set plus a few of our own (NZBGeek, AltHub, Nyaa, SubsPlease).
 
 ## Install in Hayase
 
@@ -11,7 +11,7 @@ A self-hosted set of [Hayase](https://hayase.watch) anime extensions — three N
    ```
 3. Click **Import Extensions**
 
-All three extensions show up. Open the cog (⚙) on each to configure if it needs a key.
+All six extensions show up. Open the cog (⚙) on each to configure if it needs a key.
 
 ## What's in here
 
@@ -19,22 +19,23 @@ All three extensions show up. Open the cog (⚙) on each to configure if it need
 
 | Extension | Needs config? | Notes |
 | --- | --- | --- |
-| **AnimeTosho** | None | Looks up NZBs by torrent infoHash via [feed.animetosho.org](https://feed.animetosho.org). Byte-identical mirror of fansub torrents → highest chance Hayase actually streams from Usenet. The upstream `exten.pages.dev` extension has a bug (its `single()` is empty so single-file torrents never match); this version implements both. |
 | **NZBGeek** | API key | Newznab indexer. Strong on BD remuxes (Moozzi2, KAF). Get a key at [nzbgeek.info → Account → API Settings](https://nzbgeek.info). |
 | **AltHub** | API key | Newznab indexer with better fansub coverage (Erai-raws, Almighty, Ember). Get a key at [althub.co.za → Profile → API](https://althub.co.za). |
 
-For NZBs to actually deliver bytes, the NZB's file must match the torrent's file by **filename or filesize** (Hayase's matching gate in `torrent-client/nzb.ts`). AnimeTosho is byte-identical by design; NZBGeek/AltHub work when the indexer happens to have the same release as your torrent (often true for BD remuxes, rarely true for fansubs).
+For NZBs to actually deliver bytes, the NZB's file must match the torrent's file by **filename or filesize** (Hayase's matching gate in `torrent-client/nzb.ts`). NZBGeek/AltHub work when the indexer happens to have the same release as your torrent (often true for BD remuxes, rarely true for fansubs).
 
 ### Torrent
 
 | Extension | Needs config? | Notes |
 | --- | --- | --- |
 | **Nyaa** | None | Direct [nyaa.si](https://nyaa.si) RSS — anime torrents with infoHash extraction. |
-| **AnimeTosho (torrent)** | None | AniDB-based search via [feed.animetosho.org](https://feed.animetosho.org). Returns `.torrent` URLs by default (deviation from upstream, which uses magnet) so Hayase has file metadata immediately — required for the NZB pipeline to fire on dead torrents. Toggle `useTorrent` off if you specifically want magnet links. |
-| **NekoBT** | None | Private-tracker-style index at [nekobt.to](https://nekobt.to). Resolves TVDB/TMDB → NekoBT media via the site's own `/torrents/search?tvdbid=…` endpoint (the old external mapping JSON was removed upstream). Only `single()` works — NekoBT doesn't expose batch/movie. |
+| **SubsPlease** | None | [subsplease.org](https://subsplease.org) JSON API — a single trusted group, byte-identical to their published magnets. `resolution` option picks 480/720/1080. |
+| **NekoBT** | None | Private-tracker-style index at [nekobt.to](https://nekobt.to). Resolves TVDB/TMDB → NekoBT media via the site's own `/torrents/search?tvdbid=…` endpoint (the old external mapping JSON was removed upstream). Only `single()` works — NekoBT doesn't expose batch/movie. Shows without a TVDB/TMDB id, or unknown to NekoBT, return no results instead of an error. |
 | **SeaDex** | None | Curation layer at [releases.moe](https://releases.moe). Returns community-picked **best** / **alt** releases by AniList id — exposes hashes only, Hayase finds peers via DHT. |
 
-All seven extensions are vendored locally. The repo doesn't depend on `exten.pages.dev` at runtime — if that site goes down or breaks, ours keep working.
+All six extensions are bundled from this repo. Nothing depends on `exten.pages.dev` at runtime — if that site goes down or breaks, ours keep working.
+
+AnimeTosho (NZB and torrent) and acg.rip were removed: AnimeTosho stopped indexing new releases in May 2026 and is shutting down its feed; acg.rip rate-limits and then refuses connections after short bursts. If you had them installed, remove them under **Settings → Extensions**.
 
 ## Issues
 
@@ -48,6 +49,7 @@ A useful issue includes:
 ## Development
 
 ```bash
+nix develop         # optional: Node 22 toolchain from flake.nix (matches CI)
 npm install
 npm run build       # bundles src/ → dist/*.js (one per extension)
 npm run watch       # rebuild on save

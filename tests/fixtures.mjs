@@ -39,21 +39,6 @@ export const nyaaRss = `<?xml version="1.0" encoding="UTF-8"?>
 </channel>
 </rss>`
 
-export const acgripRss = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
-<channel>
-<title>acg.rip</title>
-<item>
-<title>[Group] Show - 01 [1080p].mkv</title>
-<link>https://acg.rip/t/999.html</link>
-<guid>https://acg.rip/t/999.html</guid>
-<pubDate>Sat, 20 Apr 2024 12:00:00 +0000</pubDate>
-<enclosure url="https://acg.rip/t/999.torrent" length="1500000000" type="application/x-bittorrent"/>
-<description>Size: 1.4 GB</description>
-</item>
-</channel>
-</rss>`
-
 export const newznabJson = JSON.stringify({
   channel: {
     item: [
@@ -67,30 +52,6 @@ export const newznabJson = JSON.stringify({
     ]
   }
 })
-
-export const animetoshoByHashJson = JSON.stringify({
-  id: 12345,
-  title: '[SubsPlease] One Piece - 01 (1080p)',
-  nzb_url: 'https://animetosho.org/storage/nzbs/abc.nzb',
-  info_hash: 'aabbccddeeff00112233445566778899aabbccdd'
-})
-
-export const animetoshoByEidJson = JSON.stringify([
-  {
-    title: '[SubsPlease] One Piece - 01 (1080p)',
-    torrent_name: '[SubsPlease] One Piece - 01 (1080p).torrent',
-    torrent_url: 'https://animetosho.org/storage/torrent/abc.torrent',
-    magnet_uri: 'magnet:?xt=urn:btih:aabbccddeeff00112233445566778899aabbccdd&dn=test',
-    seeders: 100,
-    leechers: 3,
-    torrent_downloaded_count: 200,
-    info_hash: 'aabbccddeeff00112233445566778899aabbccdd',
-    total_size: 1_500_000_000,
-    anidb_fid: 1,
-    timestamp: 1_700_000_000,
-    num_files: 1
-  }
-])
 
 export const subspleaseJson = JSON.stringify({
   '1234': {

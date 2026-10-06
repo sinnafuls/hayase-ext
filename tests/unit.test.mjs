@@ -39,17 +39,6 @@ test('nyaa: exclusions filter out unwanted titles', async () => {
   assert.ok(results.every(r => !r.title.includes('Remake')))
 })
 
-// -------- acg.rip --------
-test('acgrip: parses RSS, uses .torrent URL as both link and hash', async () => {
-  const { default: acgrip } = await import('../dist/acgrip.js')
-  const fetcher = mockFetch([{ match: 'acg.rip', body: fx.acgripRss, headers: { 'content-type': 'application/rss+xml' } }])
-  const results = await acgrip.single(makeAnimeQuery({ fetch: fetcher }))
-  assert.ok(results.length === 1)
-  assert.equal(results[0].link, 'https://acg.rip/t/999.torrent')
-  assert.equal(results[0].hash, results[0].link, 'hash should equal .torrent URL (no infoHash exposed)')
-  assert.ok(results[0].size > 0)
-})
-
 // -------- SubsPlease --------
 test('subsplease: decodes base32 magnet hash, picks preferred resolution', async () => {
   const { default: sp } = await import('../dist/subsplease.js')
@@ -106,46 +95,6 @@ test('althub: same factory as nzbgeek, same behavior', async () => {
   assert.equal(link, 'https://api.example.com/nzb/abc')
 })
 
-// -------- AnimeTosho (NZB by hash) --------
-test('animetosho (nzb): looks up by infoHash, returns nzb_url', async () => {
-  const { default: ext } = await import('../dist/animetosho.js')
-  const fetcher = mockFetch([{ match: 'feed.animetosho.org', body: fx.animetoshoByHashJson }])
-  const link = await ext.single(makeNzbQuery({ fetch: fetcher, hash: 'aabbccddeeff00112233445566778899aabbccdd' }))
-  assert.equal(link, 'https://animetosho.org/storage/nzbs/abc.nzb')
-})
-
-test('animetosho (nzb): 404 returns undefined, not an error', async () => {
-  const { default: ext } = await import('../dist/animetosho.js')
-  const fetcher = mockFetch([{ match: 'feed.animetosho.org', status: 404, body: 'not found', headers: { 'content-type': 'text/plain' } }])
-  const link = await ext.single(makeNzbQuery({ fetch: fetcher }))
-  assert.equal(link, undefined)
-})
-
-// -------- AnimeTosho (torrent by anidbEid/anidbAid) --------
-test('animetosho-torrent: returns .torrent URL by default (useTorrent=true)', async () => {
-  const restore = swapGlobalFetch(mockFetch([{ match: 'feed.animetosho.org', body: fx.animetoshoByEidJson }]))
-  try {
-    const { default: ext } = await import('../dist/animetosho-torrent.js')
-    const results = await ext.single({ anidbEid: 12345, resolution: '1080', exclusions: [] }, {})
-    assert.equal(results.length, 1)
-    assert.ok(results[0].link.includes('.torrent'), 'default should be .torrent URL not magnet')
-    assert.equal(results[0].hash, 'aabbccddeeff00112233445566778899aabbccdd')
-  } finally {
-    restore()
-  }
-})
-
-test('animetosho-torrent: useTorrent=false returns magnet', async () => {
-  const restore = swapGlobalFetch(mockFetch([{ match: 'feed.animetosho.org', body: fx.animetoshoByEidJson }]))
-  try {
-    const { default: ext } = await import('../dist/animetosho-torrent.js')
-    const results = await ext.single({ anidbEid: 12345, resolution: '1080', exclusions: [] }, { useTorrent: false })
-    assert.ok(results[0].link.startsWith('magnet:'))
-  } finally {
-    restore()
-  }
-})
-
 // -------- SeaDex --------
 test('seadex: returns infoHash with link=undefined (dedupe-friendly)', async () => {
   const restore = swapGlobalFetch(mockFetch([{ match: 'releases.moe', body: fx.seadexJson }]))
@@ -182,6 +131,15 @@ test('nekobt: batch() and movie() return empty (NekoBT only indexes singles)', a
   const ext = (await import(`../dist/nekobt.js?nekobt-${Date.now()}-b`)).default
   assert.deepEqual(await ext.batch({}, {}), [])
   assert.deepEqual(await ext.movie({}, {}), [])
+})
+
+test('nekobt: unmapped show returns [] instead of throwing', async () => {
+  const ext = (await import(`../dist/nekobt.js?nekobt-${Date.now()}-u`)).default
+  const noIds = mockFetch([])
+  assert.deepEqual(await ext.single(makeAnimeQuery({ fetch: noIds }), {}), [])
+  assert.equal(noIds.calls.length, 0, 'no tvdbId/tmdbId means no id-less search')
+  const noMedia = mockFetch([{ match: 'tvdbid=', body: { error: false, data: { results: [] } } }])
+  assert.deepEqual(await ext.single(makeAnimeQuery({ tvdbId: 1, fetch: noMedia }), {}), [])
 })
 
 // -------- nzb-precheck (via newznab-extension ranking) --------

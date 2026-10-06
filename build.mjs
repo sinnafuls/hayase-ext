@@ -6,13 +6,10 @@ const config = {
   entryPoints: {
     nzbgeek: 'src/nzbgeek.ts',
     althub: 'src/althub.ts',
-    animetosho: 'src/animetosho.ts',
     nyaa: 'src/nyaa.ts',
     nekobt: 'src/nekobt.js',
     seadex: 'src/seadex.js',
-    'animetosho-torrent': 'src/animetosho-torrent.js',
-    subsplease: 'src/subsplease.ts',
-    acgrip: 'src/acgrip.ts'
+    subsplease: 'src/subsplease.ts'
   },
   bundle: true,
   format: 'esm',
