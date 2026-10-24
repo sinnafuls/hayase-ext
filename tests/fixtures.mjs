@@ -157,3 +157,65 @@ export const nekobtSearchJson = JSON.stringify({
     ]
   }
 })
+
+// AnimeTosho v1 (feed.animetosho.net/json/v1). Every release carries an
+// info_hash plus torrent/magnet/nzb URLs; `series` links it to an AniDB
+// episode, which is what the extension filters on.
+const toshoRelease = (over = {}) => ({
+  title: '[Group] One Piece - 01 [1080p].mkv',
+  info_hash: 'AABBCCDDEEFF00112233445566778899AABBCCDD',
+  torrent_url: 'https://storage.animetosho.net/torrent/abc.torrent',
+  magnet: 'magnet:?xt=urn:btih:aabbccddeeff00112233445566778899aabbccdd',
+  nzb_url: 'https://feed.animetosho.net/nzb/123',
+  size_bytes: 1500000000,
+  seeders: 10,
+  leechers: 1,
+  downloads: 100,
+  file_count: 1,
+  is_batch: false,
+  resolution: '1080p',
+  date_added: '2024-04-20T12:00:00Z',
+  series: { anidb_aid: 1, anidb_eid: 2, episode_number: 1 },
+  ...over
+})
+
+export const toshoEpisodeJson = JSON.stringify({
+  ok: true,
+  data: {
+    releases: [
+      toshoRelease(),
+      toshoRelease({ title: '[Group] One Piece - 01 [720p].mkv', resolution: '720p' }),
+      toshoRelease({ title: '[Group] One Piece - 02 [1080p].mkv', series: { anidb_aid: 1, anidb_eid: 3, episode_number: 2 } })
+    ]
+  }
+})
+
+export const toshoSeriesJson = JSON.stringify({
+  ok: true,
+  data: {
+    releases: [
+      toshoRelease({ is_batch: true, file_count: 24, title: '[Group] One Piece Season 1 (Batch) [1080p]' }),
+      toshoRelease({ info_hash: '1111111111111111111111111111111111111111', title: '[Group] One Piece - 01 [1080p].mkv' })
+    ]
+  }
+})
+
+// Title-search fallback: one hit for the requested episode (series has no
+// episode_number, so the title decides), one batch that must be dropped.
+export const toshoSearchJson = JSON.stringify({
+  ok: true,
+  data: [
+    toshoRelease({
+      title: '[Erai-raws] Tougen Anki: Nikko Kegon no Taki-hen - 04 [1080p CR WEBRip HEVC AAC][MultiSub]',
+      series: { anidb_aid: 19795, anidb_eid: 316842, episode_number: 4 }
+    }),
+    toshoRelease({
+      title: '[Group] Tougen Anki - 04 [1080p] (Batch)',
+      info_hash: '2222222222222222222222222222222222222222',
+      is_batch: true,
+      file_count: 24
+    })
+  ]
+})
+
+export const toshoHashJson = JSON.stringify({ ok: true, data: [toshoRelease()] })

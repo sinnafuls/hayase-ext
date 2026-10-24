@@ -6,6 +6,8 @@ const config = {
   entryPoints: {
     nzbgeek: 'src/nzbgeek.ts',
     althub: 'src/althub.ts',
+    animetosho: 'src/animetosho.ts',
+    'animetosho-torrent': 'src/animetosho-torrent.ts',
     nyaa: 'src/nyaa.ts',
     nekobt: 'src/nekobt.js',
     seadex: 'src/seadex.js',

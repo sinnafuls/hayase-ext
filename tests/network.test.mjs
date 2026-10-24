@@ -14,13 +14,13 @@ const NZBGEEK_APIKEY = process.env.NZBGEEK_APIKEY ?? ''
 const ALTHUB_APIKEY = process.env.ALTHUB_APIKEY ?? ''
 
 // Real-ish anime query: One Piece, ep 1.
-// anilistId 21, anidbAid 69, anidbEid for ep 1 is 1 (legacy enough that data exists).
+// anilistId 21, anidbAid 69, anidbEid for ep 1 is 440 (legacy enough that data exists).
 // tvdbId 81797, tvdbEId for S01E01 is 295068.
 const ONE_PIECE = {
   media: {},
   anilistId: 21,
   anidbAid: 69,
-  anidbEid: 1,
+  anidbEid: 440,
   tvdbId: 81797,
   tvdbEId: 295068,
   titles: ['One Piece'],
@@ -69,7 +69,7 @@ test('subsplease: batch() returns at least one batch release', maybeSkip('subspl
 })
 
 // -------- SeaDex --------
-test('seadex: test() reaches releases.moe', maybeSkip('seadex'), async () => {
+test('seadex: test() reaches seadex.moe', maybeSkip('seadex'), async () => {
   const { default: ext } = await import('../dist/seadex.js')
   assert.equal(await ext.test(), true)
 })
@@ -83,6 +83,51 @@ test('seadex: real query by anilistId returns hashes (link=undefined)', maybeSki
     assert.match(r.hash, /^[0-9a-f]{40}$/i)
     assert.ok(r.type === 'best' || r.type === 'alt')
   }
+})
+
+// -------- AnimeTosho v1 --------
+test('animetosho-torrent: test() reaches feed.animetosho.net', maybeSkip('animetosho'), async () => {
+  const { default: ext } = await import('../dist/animetosho-torrent.js')
+  assert.equal(await ext.test(), true)
+})
+
+test('animetosho-torrent: single() by anidbEid returns torrents with hashes', maybeSkip('animetosho'), async () => {
+  const { default: ext } = await import('../dist/animetosho-torrent.js')
+  const results = await ext.single(ONE_PIECE, {})
+  assert.ok(Array.isArray(results))
+  for (const r of results) {
+    assert.match(r.hash, /^[0-9a-f]{40}$/, 'hash must be lowercased 40 hex chars')
+    assert.match(r.link, /^(https?:\/\/|magnet:)/, 'link must be a .torrent URL or magnet')
+  }
+})
+
+// Current-season shows have no AniDB mapping in ani.zip yet, so the extension
+// must answer from the title search instead of erroring.
+test('animetosho-torrent: title fallback answers for an unmapped season', maybeSkip('animetosho'), async () => {
+  const { default: ext } = await import('../dist/animetosho-torrent.js')
+  const results = await ext.single({
+    ...ONE_PIECE,
+    anidbAid: undefined,
+    anidbEid: undefined,
+    titles: ['Tougen Anki: Nikko Kegon no Taki-hen', 'Tougen Anki'],
+    episode: 4
+  }, {})
+  assert.ok(Array.isArray(results))
+  for (const r of results) assert.match(r.hash, /^[0-9a-f]{40}$/)
+})
+
+test('animetosho (nzb): test() and hash lookup return a mirrored nzb or undefined', maybeSkip('animetosho'), async () => {
+  const { default: ext } = await import('../dist/animetosho.js')
+  assert.equal(await ext.test(), true)
+  // Long-standing Tougen Anki S01E01 release (EMBER).
+  const link = await ext.single({
+    ...ONE_PIECE,
+    hash: 'ad0b80958992799db52b1b7f441169b74e67c1b0',
+    name: '[EMBER] Tougen Anki - 01.mkv',
+    file: '[EMBER] Tougen Anki - 01.mkv'
+  })
+  assert.ok(link === undefined || typeof link === 'string')
+  if (typeof link === 'string') assert.match(link, /^https?:\/\/.+\/nzb\/\d+/)
 })
 
 // -------- NekoBT --------

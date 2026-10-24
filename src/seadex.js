@@ -1,13 +1,18 @@
-// Vendored from https://exten.pages.dev/seadex.js with one deliberate
-// deviation: `link` is omitted (undefined) instead of being set to the
-// raw infoHash string. Hayase's dedupe in extensions.ts merges results
-// by hash with `dupe.link ??= entry.link` — when SeaDex returns first
-// with link=infoHash, it locks the merged result to a hash-only link
-// and Nyaa's real .torrent URL never wins, causing the "Loading torrent
-// metadata" hang on the green-tick best releases. With link=undefined,
-// the dedupe accepts Nyaa's URL when both surface the same hash.
+// Vendored from https://exten.pages.dev/seadex.js v0.0.8 (Oct 2026), which moves
+// the API from releases.moe (now a 301) to seadex.moe.
+//
+// Deliberate deviations:
+//  - `link` is omitted (undefined) instead of being set to the raw infoHash.
+//    Hayase's dedupe in extensions.ts merges results by hash with
+//    `dupe.link ??= entry.link` — when SeaDex returns first with
+//    link=infoHash, it locks the merged result to a hash-only link and Nyaa's
+//    real .torrent URL never wins, causing the "Loading torrent metadata"
+//    hang on the green-tick best releases.
+//  - `batch`/`movie` reuse single() instead of returning [] (upstream v0.0.8
+//    drops them). SeaDex entries are per-release, so the same lookup answers
+//    both; the type field still marks best/alt.
 export default new class SeaDex {
-  url=atob("aHR0cHM6Ly9yZWxlYXNlcy5tb2UvYXBpL2NvbGxlY3Rpb25zL2VudHJpZXMvcmVjb3Jkcw==");
+  url=atob("aHR0cHM6Ly9zZWFkZXgubW9lL2FwaS9jb2xsZWN0aW9ucy9lbnRyaWVzL3JlY29yZHM=");
   async single({anilistId: anilistId, titles: titles, episodeCount: episodeCount}) {
     if (!navigator.onLine) return [];
     if (!anilistId) throw new Error("No anilistId provided");

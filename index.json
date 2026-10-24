@@ -65,6 +65,21 @@
   },
   {
     "manifestVersion": 2,
+    "name": "AnimeTosho",
+    "id": "animetosho-self",
+    "version": "0.2.0",
+    "description": "Look up byte-matched NZBs by torrent infoHash via AnimeTosho's v1 API (aggregates Nyaa, NekoBT, AniDex and others).",
+    "type": "nzb",
+    "accuracy": "high",
+    "media": "sub",
+    "languages": ["JP", "US"],
+    "url": "aHR0cHM6Ly9mZWVkLmFuaW1ldG9zaG8ubmV0",
+    "icon": "https://animetosho.org/inc/favicon.ico",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/animetosho.js"
+  },
+  {
+    "manifestVersion": 2,
     "name": "Nyaa",
     "id": "nyaa",
     "version": "0.1.1",
@@ -102,9 +117,31 @@
   },
   {
     "manifestVersion": 2,
+    "name": "AnimeTosho (torrent)",
+    "id": "animetosho-torrent-self",
+    "version": "0.2.0",
+    "description": "AnimeTosho v1 search by AniDB id, falling back to a title search when ani.zip has no mapping yet (new seasons). Aggregates Nyaa, NekoBT, AniDex and others; returns .torrent links so Hayase has file metadata immediately.",
+    "type": "torrent",
+    "accuracy": "high",
+    "media": "sub",
+    "languages": ["JP", "US"],
+    "url": "aHR0cHM6Ly9mZWVkLmFuaW1ldG9zaG8ubmV0",
+    "icon": "https://animetosho.org/inc/favicon.ico",
+    "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
+    "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/animetosho-torrent.js",
+    "options": {
+      "useTorrent": {
+        "type": "boolean",
+        "description": "Use .torrent files (default) so file metadata is known immediately — required for the NZB pipeline to fire on dead torrents. Disable to use magnet links instead.",
+        "default": true
+      }
+    }
+  },
+  {
+    "manifestVersion": 2,
     "name": "NekoBT",
     "id": "nekobt-self",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "NekoBT private-tracker-style index — TVDB/TMDB to NekoBT media via server-side mapping.",
     "type": "torrent",
     "accuracy": "high",
@@ -141,13 +178,13 @@
     "manifestVersion": 2,
     "name": "SeaDex",
     "id": "seadex-self",
-    "version": "0.0.7",
-    "description": "SeaDex curation layer (releases.moe) — community-picked best/alt anime releases by AniList id.",
+    "version": "0.0.8",
+    "description": "SeaDex curation layer (seadex.moe) — community-picked best/alt anime releases by AniList id.",
     "type": "torrent",
     "accuracy": "high",
     "media": "sub",
     "languages": ["US"],
-    "icon": "https://releases.moe/favicon.png",
+    "icon": "https://seadex.moe/favicon.png",
     "update": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/index.json",
     "code": "https://raw.githubusercontent.com/sinnafuls/hayase-ext/main/dist/seadex.js"
   }

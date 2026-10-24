@@ -97,13 +97,15 @@ test('althub: same factory as nzbgeek, same behavior', async () => {
 
 // -------- SeaDex --------
 test('seadex: returns infoHash with link=undefined (dedupe-friendly)', async () => {
-  const restore = swapGlobalFetch(mockFetch([{ match: 'releases.moe', body: fx.seadexJson }]))
+  const fetcher = mockFetch([{ match: 'seadex.moe', body: fx.seadexJson }])
+  const restore = swapGlobalFetch(fetcher)
   try {
     const { default: ext } = await import('../dist/seadex.js')
     const results = await ext.single({ anilistId: 21, titles: ['One Piece'], episodeCount: 1000 })
     assert.equal(results.length, 1, 'should drop the <redacted> entry')
     assert.equal(results[0].hash, 'aabbccddeeff00112233445566778899aabbccdd')
     assert.equal(results[0].link, undefined, 'link must be undefined so Nyaa can win dedupe')
+    assert.ok(fetcher.calls[0].url.includes('seadex.moe'), 'API moved off releases.moe (now a 301)')
     assert.equal(results[0].type, 'best')
   } finally {
     restore()
@@ -136,10 +138,87 @@ test('nekobt: batch() and movie() return empty (NekoBT only indexes singles)', a
 test('nekobt: unmapped show returns [] instead of throwing', async () => {
   const ext = (await import(`../dist/nekobt.js?nekobt-${Date.now()}-u`)).default
   const noIds = mockFetch([])
-  assert.deepEqual(await ext.single(makeAnimeQuery({ fetch: noIds }), {}), [])
-  assert.equal(noIds.calls.length, 0, 'no tvdbId/tmdbId means no id-less search')
-  const noMedia = mockFetch([{ match: 'tvdbid=', body: { error: false, data: { results: [] } } }])
-  assert.deepEqual(await ext.single(makeAnimeQuery({ tvdbId: 1, fetch: noMedia }), {}), [])
+  assert.deepEqual(await ext.single(makeAnimeQuery({ fetch: noIds, anilistId: undefined }), {}), [])
+  assert.equal(noIds.calls.length, 0, 'no tvdbId/tmdbId/anilistId means no id-less search')
+  // makeAnimeQuery carries anilistId, so the lookup goes to media_id=anilist-<id>
+  // and NekoBT has no media for it.
+  const noMedia = mockFetch([{ match: 'media_id=', body: { error: false, data: {} } }])
+  assert.deepEqual(await ext.single(makeAnimeQuery({ fetch: noMedia }), {}), [])
+})
+
+test('nekobt: falls back to media_id=anilist-<id> when TVDB has no media', async () => {
+  // First lookup by tvdbid finds nothing, so v0.1.2 retries by AniList id;
+  // the third call is the torrent search itself (media_id=<media id>).
+  const fetcher = mockFetch([
+    { match: 'media_id=anilist-', body: fx.nekobtMediaSearchJson },
+    { match: 'tvdbid=', body: { error: false, data: {} } },
+    { match: 'media_id=', body: fx.nekobtSearchJson }
+  ])
+  const ext = (await import(`../dist/nekobt.js?nekobt-${Date.now()}-a`)).default
+  const results = await ext.single({ tvdbId: 1, tvdbEId: 11111, anilistId: 177474, episode: 1, fetch: fetcher }, {})
+  assert.ok(fetcher.calls[1].url.includes('media_id=anilist-177474'), 'retry must use the AniList id')
+  assert.equal(results.length, 1)
+})
+
+// -------- AnimeTosho v1 (torrent) --------
+test('animetosho-torrent: by anidbEid keeps one episode at the requested resolution', async () => {
+  const { default: ext } = await import('../dist/animetosho-torrent.js')
+  const fetcher = mockFetch([{ match: '/episodes/2', body: fx.toshoEpisodeJson }])
+  const results = await ext.single(makeAnimeQuery({ fetch: fetcher, anidbEid: 2, episode: 1, resolution: '1080' }), {})
+  assert.equal(results.length, 1, 'drops the 720p copy and the other episode')
+  assert.equal(results[0].hash, 'aabbccddeeff00112233445566778899aabbccdd', 'hash lowercased for dedupe')
+  assert.equal(results[0].accuracy, 'high', 'matching anidb_eid means high accuracy')
+  assert.ok(results[0].link.endsWith('.torrent'))
+  assert.equal(results[0].size, 1500000000)
+})
+
+test('animetosho-torrent: title search covers shows with no AniDB id', async () => {
+  const { default: ext } = await import('../dist/animetosho-torrent.js')
+  const fetcher = mockFetch([{ match: '/search?', body: fx.toshoSearchJson }])
+  const results = await ext.single(
+    makeAnimeQuery({ fetch: fetcher, episode: 4, titles: ['Tougen Anki: Nikko Kegon no Taki-hen'] }),
+    {}
+  )
+  const url = decodeURIComponent(fetcher.calls[0].url).replaceAll('+', ' ')
+  assert.match(url, /q="Tougen Anki: Nikko Kegon no Taki-hen" 04/, 'quoted phrase + padded episode')
+  assert.equal(results.length, 1, 'batch entry dropped from single()')
+  assert.match(results[0].title, /Erai-raws/)
+})
+
+test('animetosho-torrent: useTorrent=false and exclusions are honored', async () => {
+  const { default: ext } = await import('../dist/animetosho-torrent.js')
+  const fetcher = mockFetch([{ match: '/episodes/2', body: fx.toshoEpisodeJson }])
+  const results = await ext.single(
+    makeAnimeQuery({ fetch: fetcher, anidbEid: 2, episode: 1, exclusions: ['One Piece'] }),
+    { useTorrent: false }
+  )
+  assert.deepEqual(results, [])
+})
+
+test('animetosho-torrent: batch() returns only multi-file batches', async () => {
+  const { default: ext } = await import('../dist/animetosho-torrent.js')
+  const fetcher = mockFetch([{ match: '/series/anidb/1', body: fx.toshoSeriesJson }])
+  const results = await ext.batch(makeAnimeQuery({ fetch: fetcher, anidbAid: 1, episode: 12 }), {})
+  assert.equal(results.length, 1)
+  assert.equal(results[0].type, 'batch')
+  assert.match(results[0].title, /Batch/)
+})
+
+// -------- AnimeTosho v1 (NZB by hash) --------
+test('animetosho (nzb): hash lookup returns the mirrored nzb_url', async () => {
+  const { default: ext } = await import('../dist/animetosho.js')
+  const fetcher = mockFetch([{ match: '/search?', body: fx.toshoHashJson }])
+  const link = await ext.single(makeNzbQuery({ fetch: fetcher, hash: 'aabbccddeeff00112233445566778899aabbccdd' }))
+  assert.equal(link, 'https://feed.animetosho.net/nzb/123')
+})
+
+test('animetosho (nzb): malformed hash skips the request, a miss returns undefined', async () => {
+  const { default: ext } = await import('../dist/animetosho.js')
+  const none = mockFetch([])
+  assert.equal(await ext.single(makeNzbQuery({ fetch: none, hash: 'not-a-hash' })), undefined)
+  assert.equal(none.calls.length, 0)
+  const miss = mockFetch([{ match: '/search?', body: fx.toshoHashJson }])
+  assert.equal(await ext.single(makeNzbQuery({ fetch: miss, hash: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' })), undefined)
 })
 
 // -------- nzb-precheck (via newznab-extension ranking) --------
